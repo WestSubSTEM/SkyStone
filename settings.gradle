@@ -1,2 +1,3 @@
 include ':FtcRobotController'
+include 'HOMAR-FTC-Library'
 include ':TeamCode'
