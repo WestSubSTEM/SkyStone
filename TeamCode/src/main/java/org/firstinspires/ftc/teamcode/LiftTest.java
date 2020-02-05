@@ -16,7 +16,7 @@ import edu.spa.ftclib.internal.state.Button;
  * Tested and found fully functional by Gabriel on 2018-8-5.
  */
 
-
+@Disabled
 @TeleOp(name = "Lift Test", group = "sample")
 
 public class LiftTest extends OpMode {

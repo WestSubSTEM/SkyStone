@@ -82,7 +82,9 @@ public class TeleopMeet3 extends OpMode {
         intakeServoRight = hardwareMap.get(Servo.class, "intakeRight");
 
         foundationServoRight = hardwareMap.get(Servo.class, "foundationServoRight");
+        foundationServoRight.setPosition(StemperFiConstants.FOUNDATION_SERVO_RIGHT_UP);
         foundationServoLeft = hardwareMap.get(Servo.class, "foundationServoLeft");
+        foundationServoLeft.setPosition(StemperFiConstants.FOUNDATION_SERVO_LEFT_UP);
 
         skystoneServo = hardwareMap.get(Servo.class, "skystoneServo");
         skystoneServo.setPosition(skystoneServoPosition);
@@ -142,10 +144,10 @@ public class TeleopMeet3 extends OpMode {
 
         // Extension Servo
         if (gamepad2.left_stick_x > 0.2) {
-            extensionServoPosition -= 0.001;
+            extensionServoPosition -= 0.01;
             extensionServoPosition = extensionServoPosition > StemperFiConstants.EXTENSION_SERVO_OUT ? extensionServoPosition : StemperFiConstants.EXTENSION_SERVO_OUT;
         } else if (gamepad2.left_stick_x < -0.2) {
-            extensionServoPosition += 0.001;
+            extensionServoPosition += 0.01;
             extensionServoPosition = extensionServoPosition < StemperFiConstants.EXTENSION_SERVO_IN ? extensionServoPosition : StemperFiConstants.EXTENSION_SERVO_IN;
         }
         extensionServo.setPosition(extensionServoPosition);
@@ -193,6 +195,9 @@ public class TeleopMeet3 extends OpMode {
             }
         }
         telemetry.addData("Lift Level: ", liftLevel);
+        telemetry.addData("r: ", liftRightMotor.getCurrentPosition());
+        telemetry.addData("ext: ", extensionServoPosition);
+        telemetry.addData( "button: ", gamepad2.left_stick_button);
         telemetry.update();
     }
 }
