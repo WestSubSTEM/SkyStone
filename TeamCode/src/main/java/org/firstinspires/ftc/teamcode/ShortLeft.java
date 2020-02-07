@@ -12,7 +12,7 @@ import com.qualcomm.robotcore.hardware.Servo;
  */
 
 
-@Autonomous (name = "Short Left", group = "meet3")
+@Autonomous (name = "Short Left", group = "qual")
 public class ShortLeft extends AutoBase {
 
     public ShortLeft() {

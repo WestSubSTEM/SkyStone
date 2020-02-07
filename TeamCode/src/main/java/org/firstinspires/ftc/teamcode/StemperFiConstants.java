@@ -20,4 +20,7 @@ public class StemperFiConstants {
     public static final double EXTENSION_SERVO_OUT = 0.0;
 
     public static final int[] LIFT_POSITIONS = new int[] {0, 1391, 3245, 5099, 6953, 8807, 10662, 12516, 14370, 16224, 18078, 19933};
+
+    public static final int TICKS_PER_CM = 22;
+    public static final int SLIDE_TICKS_PER_CM = 25;
 }

@@ -24,7 +24,7 @@ import edu.spa.ftclib.internal.state.Button;
  */
 
 @Disabled
-@Autonomous (name = "Auto Base", group = "meet3")
+@Autonomous (name = "Auto Base", group = "qual")
 
 public abstract class AutoBase extends LinearOpMode {
     public DcMotor frontLeft;

@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
  */
 
 
-@Autonomous (name = "Long Left", group = "meet3")
+@Autonomous (name = "Long Left", group = "qual")
 public class LongLeft extends AutoBase {
 
     public LongLeft() {
