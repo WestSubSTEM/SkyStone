@@ -9,8 +9,6 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.robotcore.external.Func;
-import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
@@ -18,14 +16,10 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 import java.util.Locale;
 
-/**
- * Created by Gabriel on 2018-06-12.
- * UNTESTED.
- */
+@Autonomous (name = "Auto Base", group = "Qual")
+public class AutoFoundation extends LinearOpMode {
 
-
-@Autonomous (name = "Blue Foundation Wall", group = "Qual")
-public class BlueFoundationWall extends LinearOpMode {
+    // Drivetrain Motors
     public DcMotor frontLeft;
     public DcMotor frontRight;
     public DcMotor backLeft;
@@ -38,32 +32,44 @@ public class BlueFoundationWall extends LinearOpMode {
     // State used for updating telemetry
     Orientation angles;
 
+    // Intake servos VEX 2-Wire Motor 393
     public Servo intakeServoLeft;
     public Servo intakeServoRight;
 
+    // Servos for grabbing the foundation
     public Servo foundationServoLeft;
     public Servo foundationServoRight;
 
+    // servo for grabbing the bricks by the top nub
     public Servo skystoneServo;
     public double skystoneServoPosition = StemperFiConstants.SKYSTONE_SERVO_OPEN;
 
+    // servo for extending brick to foundation
     public Servo extensionServo;
     public double extensionServoPosition = StemperFiConstants.EXTENSION_SERVO_IN;
 
+    // Are we blue alliance.
     public boolean isBlue = true;
+
+    // Park on the bridge side or the wall side
     public boolean isBridge = false;
 
 
     @Override
     public void runOpMode() throws InterruptedException {
         frontLeft = hardwareMap.get(DcMotor.class, "driveFrontLeft");
-        frontLeft.setDirection(DcMotor.Direction.REVERSE);
         frontRight = hardwareMap.get(DcMotor.class, "driveFrontRight");
         backLeft = hardwareMap.get(DcMotor.class, "driveBackLeft");
-        backLeft.setDirection(DcMotor.Direction.REVERSE);
         backRight = hardwareMap.get(DcMotor.class, "driveBackRight");
+        // Put all the drive motors in an array when we want to do the same thing for all the motors
+        // we can loop through them
         driveMotors = new DcMotor[]{frontLeft, frontRight, backLeft, backRight};
 
+        // reverse the left side so that motors turn in the same relative direction
+        frontLeft.setDirection(DcMotor.Direction.REVERSE);
+        backLeft.setDirection(DcMotor.Direction.REVERSE);
+
+        // get and initialize the IMU taken from FTC samples
         imu = hardwareMap.get(BNO055IMUImpl.class, "imu");
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
         parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
@@ -71,10 +77,11 @@ public class BlueFoundationWall extends LinearOpMode {
 
         parameters.loggingEnabled = true;   //For debugging
         parameters.loggingTag = "IMU";      //For debugging
-        parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();  //Figure out why the naive one doesn't have a public constructor
+        parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
         imu.initialize(parameters);
         while (!imu.isGyroCalibrated());
 
+        // Initialize the Servos Even though we aren't using them set them to teleop initial state
         intakeServoLeft = hardwareMap.get(Servo.class, "intakeLeft");
         intakeServoRight = hardwareMap.get(Servo.class, "intakeRight");
 
@@ -90,28 +97,59 @@ public class BlueFoundationWall extends LinearOpMode {
         foundationServoLeft.setPosition(StemperFiConstants.FOUNDATION_SERVO_LEFT_UP);
         foundationServoRight.setPosition(StemperFiConstants.FOUNDATION_SERVO_RIGHT_UP);
 
+        // Wait for the driving coach to press start
         while (!opModeIsActive() && !isStopRequested()) {
+            // continuously print some telemetry to keep phone from crashing
             composeTelemetry();
+
+            // Do we go moveForward or moveBackwards to the tape line
+            if (gamepad2.x) {
+                isBlue = true;
+            }
+            else if (gamepad2.b) {
+                isBlue = false;
+            }
+
+            // Do we park on the wall or near the brdige
+            if (gamepad2.y) {
+                isBridge = true;
+            } else if (gamepad2.a) {
+                isBridge = false;
+            }
+            telemetry.addData("Alliance", isBlue ? "Blue" : "Red");
+            telemetry.addData("Park", isBridge ? "Bridge" : "Wall");
             telemetry.update();
         }
-        telemetry.addData("Go Go Go!", "HI");
+        telemetry.addData("Go Robot", "Go!");
         telemetry.update();
 
+        // Move to foundation
         int length = (int) Math.floor(45.5 * StemperFiConstants.TICKS_PER_CM); // 45.5 cm
-        int slide = isBlue ? 900 : -900;
-        //32cm;
-        forward(length, 0.4);
-        slideLeft(slide, 0.4);
+        moveForward(length, 0.4);
+        // Get closer to middle of foundation
+        int slideToCenterFoundation = 36 * StemperFiConstants.SLIDE_TICKS_PER_CM; //36 cm
+        if (isBlue) {
+            slideLeft(slideToCenterFoundation, 0.4);
+        } else {
+            slideRight(slideToCenterFoundation, 0.4);
+        }
+        // get all the way to foundaiton
         length = (int) Math.floor(38 * StemperFiConstants.TICKS_PER_CM);
-        forward(length, 0.4);
+        moveForward(length, 0.4);
+        // let compliant intake wheels expand
         sleep(500);
+        // nudge to left & right to account for intake wheels bouncing foundation forward
         turn(100, .3);
         turn(-100, .3);
+        // Drop the servos hooks!!!!
         foundationServoLeft.setPosition(StemperFiConstants.FOUNDATION_SERVO_LEFT_DOWN);
         foundationServoRight.setPosition(StemperFiConstants.FOUNDATION_SERVO_RIGHT_DOWN);
+        // give the servos time to travel
         sleep(1000);
-        length = (int) Math.floor(-90 * StemperFiConstants.TICKS_PER_CM);
-        forward(length, 0.4);
+        // back up to wall
+        length = (int) Math.floor(90 * StemperFiConstants.TICKS_PER_CM);
+        moveBackwards(length, 0.4);
+
 
         turn(100, .5);
         for (DcMotor motor : driveMotors) {
@@ -145,15 +183,24 @@ public class BlueFoundationWall extends LinearOpMode {
                 motor.setPower(0);
             }
         }
-
+        // release the foundation hooks
         foundationServoLeft.setPosition(StemperFiConstants.FOUNDATION_SERVO_LEFT_UP);
         foundationServoRight.setPosition(StemperFiConstants.FOUNDATION_SERVO_RIGHT_UP);
+        // wait for hooks to finish moving
         sleep(1000);
-        length = (int) Math.floor(-30 * StemperFiConstants.TICKS_PER_CM);
-        forward(length, 0.6);
-        slide = isBlue ? 800 : -800;
-        slideLeft(slide, 0.6);
-        // park closer to the bridge
+
+        // move backwards towards the line
+        length = (int) Math.floor(30 * StemperFiConstants.TICKS_PER_CM);
+        moveBackwards(length, 0.6);
+
+        // move against the wall to straighten us out
+        int slideToWall = 32 * StemperFiConstants.SLIDE_TICKS_PER_CM;
+        if (isBlue) {
+            slideLeft(slideToWall, 0.6);
+        } else {
+            slideRight(slideToWall, 0.6);
+        }
+        // park closer to the bridge?
         if (isBridge) {
             int squareSlide = 66 * StemperFiConstants.SLIDE_TICKS_PER_CM;
             if (isBlue) {
@@ -162,11 +209,13 @@ public class BlueFoundationWall extends LinearOpMode {
                 slideLeft(squareSlide, .50);
             }
         }
-        length = (int) Math.floor(-70 * StemperFiConstants.TICKS_PER_CM);
-        forward(length, 0.6);
+        // Now finish moving to the line
+        length = (int) Math.floor(70 * StemperFiConstants.TICKS_PER_CM);
+        moveBackwards(length, 0.6);
     }
 
-    public void forward(int ticks, double power) {
+    // Move the robot forwards
+    public void moveForward(int ticks, double power) {
         for (DcMotor motor : driveMotors) {
             motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             motor.setTargetPosition(ticks);
@@ -180,6 +229,13 @@ public class BlueFoundationWall extends LinearOpMode {
         }
     }
 
+    // Move the robot backwards
+    public void moveBackwards(int ticks, double power) {
+        // backwards is just negative forwards
+        moveForward(-ticks, power);
+    }
+
+    // strafe robot to the left
     public void slideLeft(int ticks, double power) {
         for (DcMotor motor : driveMotors) {
             motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -202,10 +258,13 @@ public class BlueFoundationWall extends LinearOpMode {
         }
     }
 
+    // strafe robot to the right
     public void slideRight(int ticks, double power) {
+        // right is just negative left
         slideLeft(-ticks, power);
     }
 
+    // rotate the robot
     public void turn(int ticks, double power) {
         for (DcMotor motor : driveMotors) {
             motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -228,6 +287,7 @@ public class BlueFoundationWall extends LinearOpMode {
         }
     }
 
+    // Telemetry code from FRIST examples
     void composeTelemetry() {
         angles   = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         telemetry.addData("heading", formatAngle(angles.angleUnit, angles.firstAngle));
