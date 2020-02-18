@@ -4,15 +4,16 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 import com.qualcomm.robotcore.util.Range;
 import edu.spa.ftclib.internal.state.Button;
 
 import edu.spa.ftclib.internal.drivetrain.MecanumDrivetrain;
 
-@TeleOp(name = "Qual Tele-op", group = "Qual")
-
-public class TeleopQual extends OpMode {
+@TeleOp(name = "State Tele-op", group = "State")
+public class TeleopState extends OpMode {
     // Drivetrain Motors
     public DcMotor frontLeft;
     public DcMotor frontRight;
@@ -25,6 +26,9 @@ public class TeleopQual extends OpMode {
     private DcMotor liftMiddleMotor;
     private DcMotor liftRightMotor;
     private DcMotor[] liftMotors;
+
+    // The tape measure motor
+    private DcMotor tapeMeasureMotor;
 
     // Intake servos VEX 2-Wire Motor 393
     public Servo intakeServoLeft;
@@ -42,6 +46,9 @@ public class TeleopQual extends OpMode {
     public Servo extensionServo;
     public double extensionServoPosition = StemperFiConstants.EXTENSION_SERVO_IN;
 
+    public Servo capstoneServo;
+    public double capstoneServoPosition = StemperFiConstants.CAPSTONE_SERVO_START;
+
     // The MecanumDrivetrain courtous of HOMAR FTC library
     public MecanumDrivetrain drivetrain;
 
@@ -53,7 +60,7 @@ public class TeleopQual extends OpMode {
      */
     @Override
     public void init() {
-        // Setup teh drivetrain
+        // Setup the drivetrain
         frontLeft = hardwareMap.get(DcMotor.class, "driveFrontLeft");
         frontRight = hardwareMap.get(DcMotor.class, "driveFrontRight");
         backLeft = hardwareMap.get(DcMotor.class, "driveBackLeft");
@@ -66,6 +73,7 @@ public class TeleopQual extends OpMode {
         liftMiddleMotor = hardwareMap.get(DcMotor.class, "liftMiddleMotor");
         liftRightMotor = hardwareMap.get(DcMotor.class, "liftRightMotor");
         liftMotors = new DcMotor[] {liftLeftMotor, liftMiddleMotor, liftRightMotor};
+
         // we have to reverse the middle motor because the chain goes around it in the opposite direction
         liftMiddleMotor.setDirection(DcMotor.Direction.REVERSE);
         for (DcMotor motor : liftMotors) {
@@ -74,6 +82,12 @@ public class TeleopQual extends OpMode {
             // We do not need break because our lead screw won't turn due to gravity
             motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         }
+
+        // tape measure motor
+        tapeMeasureMotor = hardwareMap.get(DcMotor.class, "tapeMeasureMotor");
+        tapeMeasureMotor.setDirection(DcMotor.Direction.REVERSE);
+        tapeMeasureMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+
 
         //Initialize the Servos
         intakeServoLeft = hardwareMap.get(Servo.class, "intakeLeft");
@@ -89,6 +103,9 @@ public class TeleopQual extends OpMode {
 
         extensionServo = hardwareMap.get(Servo.class, "extensionServo");
         extensionServo.setPosition(extensionServoPosition);
+
+        capstoneServo = hardwareMap.get(Servo.class, "capstoneServo");
+        capstoneServo.setPosition(capstoneServoPosition);
     }
 
     /**
@@ -107,6 +124,14 @@ public class TeleopQual extends OpMode {
         drivetrain.setVelocity(velocity);
         drivetrain.setRotation(rotation);
 
+        // Drivetrain Driver is in charge of capstone servo
+        if (gamepad1.left_bumper) {
+            capstoneServoPosition = StemperFiConstants.CAPSTONE_SERVO_END;
+        } else if (gamepad1.right_bumper) {
+            capstoneServoPosition = StemperFiConstants.CAPSTONE_SERVO_START;
+        }
+        capstoneServo.setPosition(capstoneServoPosition);
+
         // Driver 2
         if (gamepad2.left_stick_button || gamepad2.right_stick_button) {
             foundationServoLeft.setPosition(StemperFiConstants.FOUNDATION_SERVO_LEFT_DOWN);
@@ -115,6 +140,15 @@ public class TeleopQual extends OpMode {
             foundationServoLeft.setPosition(StemperFiConstants.FOUNDATION_SERVO_LEFT_UP);
             foundationServoRight.setPosition(StemperFiConstants.FOUNDATION_SERVO_RIGHT_UP);
         }
+
+        // Tape Measure Motor
+        double tapeMeasurePower = 0;
+        if (gamepad2.start) {
+            tapeMeasurePower = 0.75;
+        } else if (gamepad2.back) {
+            tapeMeasurePower = -0.25;
+        }
+        tapeMeasureMotor.setPower(tapeMeasurePower);
 
         // Intake motors
         double intakeServoPowerLeft = 0.5;
@@ -153,11 +187,13 @@ public class TeleopQual extends OpMode {
 
         // lift
         double power = (gamepad2.right_stick_y * -1);
-        if (Math.abs(power) > 0.1) {
-            for (DcMotor motor : liftMotors) {
-                motor.setPower(power);
-            }
+        if (Math.abs(power) < 0.1) {
+            power = 0;
         }
+        for (DcMotor motor : liftMotors) {
+            motor.setPower(power);
+        }
+
         telemetry.update();
     }
 }

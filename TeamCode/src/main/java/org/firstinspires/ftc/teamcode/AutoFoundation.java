@@ -16,7 +16,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 import java.util.Locale;
 
-@Autonomous (name = "Auto Base", group = "Qual")
+@Autonomous (name = "Auto Foundation", group = "Qual")
 public class AutoFoundation extends LinearOpMode {
 
     // Drivetrain Motors
@@ -116,8 +116,8 @@ public class AutoFoundation extends LinearOpMode {
             } else if (gamepad2.a) {
                 isBridge = false;
             }
-            telemetry.addData("Alliance", isBlue ? "Blue" : "Red");
-            telemetry.addData("Park", isBridge ? "Bridge" : "Wall");
+            telemetry.addData("Alliance (x=Blue, b=Red)", isBlue ? "Blue" : "Red");
+            telemetry.addData("Park (y=Bridge, a=Wall", isBridge ? "Bridge" : "Wall");
             telemetry.update();
         }
         telemetry.addData("Go Robot", "Go!");

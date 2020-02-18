@@ -10,10 +10,10 @@ public class StemperFiConstants {
 
     // These servos positions were calcuated using the RevHub software
     // which let us set discreate values and determine the correct one.
-    public static final double FOUNDATION_SERVO_LEFT_UP = 0.86;
+    public static final double FOUNDATION_SERVO_LEFT_UP = 0.53;
     public static final double FOUNDATION_SERVO_LEFT_DOWN = 0.18;
 
-    public static final double FOUNDATION_SERVO_RIGHT_UP = 0.08;
+    public static final double FOUNDATION_SERVO_RIGHT_UP = 0.39;
     public static final double FOUNDATION_SERVO_RIGHT_DOWN = 0.75;
 
     public static final double SKYSTONE_SERVO_OPEN = 0.75;
@@ -28,4 +28,9 @@ public class StemperFiConstants {
     public static final int TICKS_PER_CM = 22;
     // Hom many encoder ticks to slide left/right 1 cm
     public static final int SLIDE_TICKS_PER_CM = 25;
+
+    public static final double CAPSTONE_SERVO_START = 0.55;
+    public static final double CAPSTONE_SERVO_END = 0.87;
+
 }
+

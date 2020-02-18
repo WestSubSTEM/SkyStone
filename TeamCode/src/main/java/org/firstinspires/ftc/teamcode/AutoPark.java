@@ -116,9 +116,9 @@ public class AutoPark extends LinearOpMode {
                 isSideways = false;
             }
             // show the status
-            telemetry.addData("Move", isForward ? "Forward" : "Reverse");
-            telemetry.addData("Sleep Seconds", sleepSec);
-            telemetry.addData("Sideways", isSideways);
+            telemetry.addData("Move (x=Backwards, b=Forwards)", isForward ? "Forward" : "Reverse");
+            telemetry.addData("Sleep Seconds (y=+1, a=-1", sleepSec);
+            telemetry.addData("Sideways (rBumper=right, lBumper=left, thumbButton=clear)", isSideways);
             if (isSideways) {
                 telemetry.addData("Sideways", isLeft ? "Left" : "Right");
             } else {
